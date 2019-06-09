@@ -601,6 +601,8 @@ def run_pymodules_install(ctx, modules, project_dir=None,
            ignore_setup_py=True
 
     """
+    # This is necessary because e.g. "." will break some path joins:
+    project_dir = os.path.abspath(project_dir)
 
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE ***')
     modules = list(filter(ctx.not_has_package, modules))
@@ -769,7 +771,7 @@ def run_pymodules_install(ctx, modules, project_dir=None,
                     "'" + join(
                         ctx.build_dir, "venv", "bin", "pip"
                     ).replace("'", "'\"'\"'") + "' " +
-                    "install -c constraints.txt -v ."
+                    "install -c constraints.txt --no-color --progress-bar off ."
                 ).format(ctx.get_site_packages_dir().replace("'", "'\"'\"'")),
                         _env=copy.copy(env))
 

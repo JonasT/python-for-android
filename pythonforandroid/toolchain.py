@@ -8,6 +8,7 @@ This module defines the entry point for command line and programmatic use.
 
 from __future__ import print_function
 from os import environ
+from os.path import abspath
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
@@ -589,6 +590,7 @@ class ToolchainCL(object):
         self.ctx.use_setup_py = getattr(args, "use_setup_py", True)
 
         have_setup_py_or_similar = False
+        project_dir = None
         if getattr(args, "private", None) is not None:
             project_dir = getattr(args, "private")
             if (os.path.exists(os.path.join(project_dir, "setup.py")) or
@@ -610,7 +612,7 @@ class ToolchainCL(object):
                     dependencies = [
                         dep.lower() for dep in
                         get_dep_names_of_package(
-                            args.private,
+                            abspath(args.private),
                             keep_version_pins=True,
                             recursive=True,
                             verbose=True,
@@ -629,9 +631,9 @@ class ToolchainCL(object):
                         if len(args.requirements) > 0:
                             args.requirements += u","
                         args.requirements += u",".join(dependencies)
-                except ValueError:
+                except ValueError as e:
                     # Not a python package, apparently.
-                    pass
+                    info("Does not appear a python package: " + str(e))
 
             # Parse --requirements argument list:
             for requirement in split_argument_list(args.requirements):
