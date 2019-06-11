@@ -2,8 +2,9 @@ from __future__ import print_function
 from setuptools import Command
 
 import sys
-from os.path import realpath, join, exists, dirname, curdir, basename, split
-from os import makedirs
+import os
+from os.path import basename, exists, curdir, dirname, join, realpath, split
+from os import getcwd, makedirs
 from glob import glob
 from shutil import rmtree, copyfile
 
@@ -56,6 +57,10 @@ class BdistAPK(Command):
             sys.argv.append('--name="{}"'.format(name))
             self.name = name
 
+        if not argv_contains('--ignore-setup-py'):
+            # Default to using setup.py when we're launched from it!
+            sys.argv.append("--use-setup-py")
+
         if not argv_contains('--package'):
             package = 'org.test.{}'.format(self.name.lower().replace(' ', ''))
             print('WARNING: You did not supply an Android package '
@@ -98,11 +103,17 @@ class BdistAPK(Command):
                 globs.append(join(directory, pattern))
 
         filens = []
-        for pattern in globs:
-            filens.extend(glob(pattern))
+        if len(globs) == 0:
+            for root, dirs, files in os.walk(".", topdown=False):
+                for name in files:
+                    filens.append(os.path.join(root, name))
+        else:
+            for pattern in globs:
+                filens.extend(glob(pattern))
 
         main_py_dirs = []
         if not argv_contains('--launcher'):
+            # Collect possible directories from files:
             for filen in filens:
                 new_dir = join(bdist_dir, dirname(filen))
                 if not exists(new_dir):
@@ -111,6 +122,9 @@ class BdistAPK(Command):
                 copyfile(filen, join(bdist_dir, filen))
                 if basename(filen) in ('main.py', 'main.pyo'):
                     main_py_dirs.append(filen)
+            if len(main_py_dirs) == 0:
+                # If no package data is specified, check working directory:
+                main_py_dirs.append(getcwd())
 
         # This feels ridiculous, but how else to define the main.py dir?
         # Maybe should just fail?
