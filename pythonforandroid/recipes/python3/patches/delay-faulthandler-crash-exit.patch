@@ -1,0 +1,19 @@
+diff --git a/Modules/faulthandler.c b/Modules/faulthandler.c
+--- a/Modules/faulthandler.c
++++ b/Modules/faulthandler.c
+@@ -15,6 +15,7 @@
+ #ifdef HAVE_SYS_RESOURCE_H
+ #  include <sys/resource.h>
+ #endif
++#include <unistd.h>
+ 
+ /* Allocate at maximum 100 MiB of the stack to raise the stack overflow */
+ #define STACK_OVERFLOW_MAX_SIZE (100 * 1024 * 1024)
+@@ -347,6 +348,7 @@ faulthandler_fatal_error(int signum)
+ 
+     faulthandler_dump_traceback(fd, fatal_error.all_threads,
+                                 fatal_error.interp);
++    usleep(500000);  // Hack to allow stdout/stderr redirector to finish
+ 
+     errno = save_errno;
+ #ifdef MS_WINDOWS
