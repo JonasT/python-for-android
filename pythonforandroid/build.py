@@ -691,14 +691,37 @@ def run_setuppy_install(ctx, project_dir, env=None):
 
             # Actually run setup.py:
             info('Launching package install...')
+            _no_build_isolation_env = copy.copy(env)
+            _no_build_isolation_env["PIP_NO_BUILD_ISOLATION"] = "1"
             shprint(sh.bash, '-c', (
                 "'" + join(
                     ctx.build_dir, "venv", "bin", "pip"
-                ).replace("'", "'\"'\"'") + "' " +
-                "install -c ._tmp_p4a_recipe_constraints.txt -v ."
+                ).replace("'", "'\"'\"'") + "' "
+                "install --no-build-isolation "
+                "-c ._tmp_p4a_recipe_constraints.txt '"
+                "nettools @ https://github.com/JonasT/nettools/archive/master.zip#'"
             ).format(ctx.get_site_packages_dir().
                      replace("'", "'\"'\"'")),
-                    _env=copy.copy(env))
+                    _env=_no_build_isolation_env)
+            shprint(sh.bash, '-c', (
+                "'" + join(
+                    ctx.build_dir, "venv", "bin", "pip"
+                ).replace("'", "'\"'\"'") + "' "
+                "install --no-build-isolation "
+                "-c ._tmp_p4a_recipe_constraints.txt '"
+                "wobblui @ https://github.com/wobblui/wobblui/archive/master.zip#'"
+            ).format(ctx.get_site_packages_dir().
+                     replace("'", "'\"'\"'")),
+                    _env=_no_build_isolation_env)
+            shprint(sh.bash, '-c', (
+                "'" + join(
+                    ctx.build_dir, "venv", "bin", "pip"
+                ).replace("'", "'\"'\"'") + "' "
+                "install --no-build-isolation "
+                "-c ._tmp_p4a_recipe_constraints.txt ."
+            ).format(ctx.get_site_packages_dir().
+                     replace("'", "'\"'\"'")),
+                    _env=_no_build_isolation_env)
 
             # Go over all new additions and copy them back:
             info('Copying additions resulting from setup.py back '
@@ -832,8 +855,8 @@ def run_pymodules_install(ctx, modules, project_dir=None,
                  'changes / workarounds.')
 
             shprint(sh.bash, '-c', (
-                "venv/bin/pip " +
-                "install -v --target '{0}' --no-deps -r requirements.txt"
+                "venv/bin/pip install --target '{0}' --no-deps "
+                "--no-build-isolation -r requirements.txt"
             ).format(ctx.get_site_packages_dir().replace("'", "'\"'\"'")),
                     _env=copy.copy(env))
 
